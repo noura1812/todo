@@ -3,35 +3,52 @@ import 'package:todo/models/task_data.dart';
 import 'package:todo/shared/networks/remot/firebase/firebase_finctions.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
-class ShowAddTaskBottomSheet extends StatefulWidget {
-  const ShowAddTaskBottomSheet({super.key});
+class UpdateTask extends StatefulWidget {
+  static const String routname = 'updatescreen';
+
+  const UpdateTask({super.key});
 
   @override
-  State<ShowAddTaskBottomSheet> createState() => _ShowAddTaskBottomSheetState();
+  State<UpdateTask> createState() => _UpdateTaskState();
 }
 
-class _ShowAddTaskBottomSheetState extends State<ShowAddTaskBottomSheet> {
+class _UpdateTaskState extends State<UpdateTask> {
   DateTime selectedDate = DateUtils.dateOnly(DateTime.now());
+
   var formKey = GlobalKey<FormState>();
+
   var taskTitleController = TextEditingController();
+
   var taskDetailsController = TextEditingController();
+  int bilds = 0;
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding:
-          EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-      child: Container(
-        margin: const EdgeInsets.all(20.0),
+    var task = ModalRoute.of(context)!.settings.arguments as TaskModel;
+    bilds == 0 ? taskDetailsController.text = task.details : null;
+    bilds == 0 ? taskTitleController.text = task.title : null;
+    bilds == 0
+        ? selectedDate = DateTime.fromMillisecondsSinceEpoch(task.date)
+        : null;
+
+    bilds++;
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          AppLocalizations.of(context)!.update_task,
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
+      ),
+      body: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 30),
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.secondary,
+            borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(20), topRight: Radius.circular(20))),
         child: Form(
           key: formKey,
           child: Column(
-            mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                AppLocalizations.of(context)!.add_task,
-                style: Theme.of(context).textTheme.bodyLarge,
-                textAlign: TextAlign.center,
-              ),
               const SizedBox(
                 height: 20,
               ),
@@ -39,13 +56,15 @@ class _ShowAddTaskBottomSheetState extends State<ShowAddTaskBottomSheet> {
                 controller: taskTitleController,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return AppLocalizations.of(context)!.title_error;
+                    return 'Please Enter Task title';
                   }
                   return null;
                 },
                 style: Theme.of(context).textTheme.bodySmall,
                 decoration: InputDecoration(
-                    label: Text(AppLocalizations.of(context)!.task_title),
+                    label: Text(
+                      AppLocalizations.of(context)!.task_title,
+                    ),
                     labelStyle: Theme.of(context).textTheme.bodySmall,
                     border: OutlineInputBorder(
                         borderSide:
@@ -59,13 +78,15 @@ class _ShowAddTaskBottomSheetState extends State<ShowAddTaskBottomSheet> {
                 controller: taskDetailsController,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return AppLocalizations.of(context)!.details_error;
+                    return 'Please Enter Descriptio';
                   }
                   return null;
                 },
                 style: Theme.of(context).textTheme.bodySmall,
                 decoration: InputDecoration(
-                    label: Text(AppLocalizations.of(context)!.task_details),
+                    label: Text(
+                      AppLocalizations.of(context)!.task_details,
+                    ),
                     labelStyle:
                         Theme.of(context).textTheme.bodySmall!.copyWith(),
                     border: OutlineInputBorder(
@@ -116,13 +137,15 @@ class _ShowAddTaskBottomSheetState extends State<ShowAddTaskBottomSheet> {
                           title: taskTitleController.text,
                           details: taskDetailsController.text,
                           date: selectedDate.millisecondsSinceEpoch,
-                          state: false);
-                      FirebaseFunctions.addTaskToFirestore(taskModel);
+                          id: task.id,
+                          state: task.state);
+                      FirebaseFunctions.updateTasksFromFirestore(
+                          task.id, taskModel);
                       Navigator.pop(context);
                     }
                   },
                   child: Text(
-                    AppLocalizations.of(context)!.add_task,
+                    AppLocalizations.of(context)!.update,
                     style: Theme.of(context)
                         .textTheme
                         .bodyMedium!
